@@ -42,10 +42,12 @@ module.exports = function (_, opts) {
       throw new Error(`Assertion failed: The resolution thinks that "${parts[1]}" is a Node builtin`);
 
     // Strip the package.json to get the package folder
-    const packagePath = path.dirname(manifestPath);
+    let packagePath = path.dirname(manifestPath);
 
     // Attach the internal path to the resolved package directory
-    return [path.join(packagePath, parts[2])];
+    if (parts[2]) packagePath = path.join(packagePath, parts[2]);
+
+    return [packagePath];
   };
 
   const paths = function (request, basedir, opts) {
