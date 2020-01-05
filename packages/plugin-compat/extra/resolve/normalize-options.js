@@ -20,6 +20,8 @@ module.exports = function (_, opts) {
   const pnp = require(`pnpapi`);
 
   const packageIterator = function (request, basedir, getCandidates, opts) {
+    if (isCore(request)) return [request];
+
     // Extract the name of the package being requested (1=package name, 2=internal path)
     const parts = request.match(/^((?:@[^\/]+\/)?[^\/]+)(?:\/(.*))?$/);
     if (!parts)
