@@ -3,7 +3,7 @@
 // opened against the Yarn repository.
 
 const path = require(`path`);
-const isCore = require(`is-core`);
+const isCore = require(`./is-core`);
 
 module.exports = function (_, opts) {
   opts = opts || {};
