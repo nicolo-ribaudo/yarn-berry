@@ -93,6 +93,9 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
     const nmTree = buildNodeModulesTree(pnp, {pnpifyFs: false});
     const installState = buildLocatorMap(nmTree);
 
+    console.log("preinstallState", preinstallState);
+    console.log("installState", installState);
+
     await persistNodeModules(preinstallState, installState, {
       baseFs: defaultFsLayer,
       project: this.opts.project,
