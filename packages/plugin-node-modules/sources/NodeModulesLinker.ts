@@ -79,7 +79,6 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
       }),
     });
 
-    console.log("Before findInstallState");
     const preinstallState = await findInstallState(this.opts.project);
 
     // Remove build state as well, to force rebuild of all the packages
@@ -94,7 +93,6 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
     const nmTree = buildNodeModulesTree(pnp, {pnpifyFs: false});
     const installState = buildLocatorMap(nmTree);
 
-    console.log("Before persistNodeModules");
     await persistNodeModules(preinstallState, installState, {
       baseFs: defaultFsLayer,
       project: this.opts.project,
@@ -103,7 +101,6 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
 
     const installStatuses: Array<FinalizeInstallStatus> = [];
 
-    console.log("Before installState.entries() loop");
     try {
       for (const [locatorStr, installRecord] of installState.entries()) {
         const locator = structUtils.parseLocator(locatorStr);
@@ -144,7 +141,7 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
         }
       }
     } catch (e) {
-      console.log(e);
+      console.log(e.stack);
       throw e;
     }
 
