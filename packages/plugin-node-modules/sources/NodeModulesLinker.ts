@@ -79,6 +79,7 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
       }),
     });
 
+    console.log("Before findInstallState");
     const preinstallState = await findInstallState(this.opts.project);
 
     // Remove build state as well, to force rebuild of all the packages
@@ -93,6 +94,7 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
     const nmTree = buildNodeModulesTree(pnp, {pnpifyFs: false});
     const installState = buildLocatorMap(nmTree);
 
+    console.log("Before persistNodeModules");
     await persistNodeModules(preinstallState, installState, {
       baseFs: defaultFsLayer,
       project: this.opts.project,
@@ -101,43 +103,49 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
 
     const installStatuses: Array<FinalizeInstallStatus> = [];
 
-    for (const [locatorStr, installRecord] of installState.entries()) {
-      const locator = structUtils.parseLocator(locatorStr);
-      const pnpLocator = {name: structUtils.stringifyIdent(locator), reference: locator.reference};
+    console.log("Before installState.entries() loop");
+    try {
+      for (const [locatorStr, installRecord] of installState.entries()) {
+        const locator = structUtils.parseLocator(locatorStr);
+        const pnpLocator = {name: structUtils.stringifyIdent(locator), reference: locator.reference};
 
-      const pnpEntry = pnp.getPackageInformation(pnpLocator);
-      if (pnpEntry === null)
-        throw new Error(`Assertion failed: Expected the package to be registered (${structUtils.prettyLocator(this.opts.project.configuration, locator)})`);
+        const pnpEntry = pnp.getPackageInformation(pnpLocator);
+        if (pnpEntry === null)
+          throw new Error(`Assertion failed: Expected the package to be registered (${structUtils.prettyLocator(this.opts.project.configuration, locator)})`);
 
-      const sourceLocation = npath.toPortablePath(installRecord.locations[0]);
+        const sourceLocation = npath.toPortablePath(installRecord.locations[0]);
 
-      const manifest = await Manifest.find(sourceLocation);
-      const buildScripts = await this.getSourceBuildScripts(sourceLocation, manifest);
+        const manifest = await Manifest.find(sourceLocation);
+        const buildScripts = await this.getSourceBuildScripts(sourceLocation, manifest);
 
-      if (buildScripts.length > 0 && !this.opts.project.configuration.get(`enableScripts`)) {
-        this.opts.report.reportWarningOnce(MessageName.DISABLED_BUILD_SCRIPTS, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but all build scripts have been disabled.`);
-        buildScripts.length = 0;
+        if (buildScripts.length > 0 && !this.opts.project.configuration.get(`enableScripts`)) {
+          this.opts.report.reportWarningOnce(MessageName.DISABLED_BUILD_SCRIPTS, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but all build scripts have been disabled.`);
+          buildScripts.length = 0;
+        }
+
+        if (buildScripts.length > 0 && installRecord.linkType !== LinkType.HARD && !this.opts.project.tryWorkspaceByLocator(locator)) {
+          this.opts.report.reportWarningOnce(MessageName.SOFT_LINK_BUILD, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but is referenced through a soft link. Soft links don't support build scripts, so they'll be ignored.`);
+          buildScripts.length = 0;
+        }
+
+        const dependencyMeta = this.opts.project.getDependencyMeta(locator, manifest.version);
+
+        if (buildScripts.length > 0 && dependencyMeta && dependencyMeta.built === false) {
+          this.opts.report.reportInfoOnce(MessageName.BUILD_DISABLED, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but its build has been explicitly disabled through configuration.`);
+          buildScripts.length = 0;
+        }
+
+        if (buildScripts.length > 0) {
+          installStatuses.push({
+            buildLocations: installRecord.locations,
+            locatorHash: locator.locatorHash,
+            buildDirective: buildScripts,
+          });
+        }
       }
-
-      if (buildScripts.length > 0 && installRecord.linkType !== LinkType.HARD && !this.opts.project.tryWorkspaceByLocator(locator)) {
-        this.opts.report.reportWarningOnce(MessageName.SOFT_LINK_BUILD, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but is referenced through a soft link. Soft links don't support build scripts, so they'll be ignored.`);
-        buildScripts.length = 0;
-      }
-
-      const dependencyMeta = this.opts.project.getDependencyMeta(locator, manifest.version);
-
-      if (buildScripts.length > 0 && dependencyMeta && dependencyMeta.built === false) {
-        this.opts.report.reportInfoOnce(MessageName.BUILD_DISABLED, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but its build has been explicitly disabled through configuration.`);
-        buildScripts.length = 0;
-      }
-
-      if (buildScripts.length > 0) {
-        installStatuses.push({
-          buildLocations: installRecord.locations,
-          locatorHash: locator.locatorHash,
-          buildDirective: buildScripts,
-        });
-      }
+    } catch (e) {
+      console.log(e);
+      throw e;
     }
 
     return installStatuses;
