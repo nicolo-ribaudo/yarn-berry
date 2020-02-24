@@ -946,6 +946,8 @@ export class Project {
     const packageLocations: Map<LocatorHash, PortablePath> = new Map();
     const packageBuildDirectives: Map<LocatorHash, { directives: BuildDirective[], buildLocations: PortablePath[] }> = new Map();
 
+    console.log("Before step 1");
+
     // Step 1: Installing the packages on the disk
 
     for (const locatorHash of this.accessibleLocators) {
@@ -1012,6 +1014,8 @@ export class Project {
       }
     }
 
+    console.log("Before step 2");
+
     // Step 2: Link packages together
 
     const externalDependents: Map<LocatorHash, Array<PortablePath>> = new Map();
@@ -1076,6 +1080,9 @@ export class Project {
       }
     }
 
+
+    console.log("Im step 2");
+
     for (const [locatorHash, dependentPaths] of externalDependents) {
       const pkg = this.storedPackages.get(locatorHash);
       if (!pkg)
@@ -1092,6 +1099,8 @@ export class Project {
       await installer.attachExternalDependents(pkg, dependentPaths);
     }
 
+    console.log("Before step 3");
+
     // Step 3: Inform our linkers that they should have all the info needed
 
     for (const installer of installers.values()) {
@@ -1107,6 +1116,8 @@ export class Project {
         }
       }
     }
+
+    console.log("Before step 4");
 
     // Step 4: Build the packages in multiple steps
 
