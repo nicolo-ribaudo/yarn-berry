@@ -107,6 +107,7 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
         console.log(key, value);
       }
     }
+    console.log("---");
 
     await persistNodeModules(preinstallState, installState, {
       baseFs: defaultFsLayer,
@@ -595,6 +596,9 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
       const srcDir = info.target;
       const dstDir = location;
       const linkType = info.linkType;
+
+      if (verbose)
+        console.log({"!!prevTreeNode": !!prevTreeNode, srcDir, dstDir});
 
       for (const segment of segments)
         node = node!.children.get(segment);
