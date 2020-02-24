@@ -581,6 +581,8 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
   // Add new locations
   for (const [locator, {locations}] of installState.entries()) {
     for (const location of locations) {
+      const verbose = installState.get(locator)!.target.includes("codemod-object-assign-to-object-spread");
+
       const {locationRoot, segments} = parseLocation(location, {
         skipPrefix: project.cwd,
       });
@@ -593,6 +595,19 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
       const srcDir = info.target;
       const dstDir = location;
       const linkType = info.linkType;
+
+      if (verbose) {
+        console.log({
+          locationRoot,
+          segments,
+          prevTreeNode,
+          node,
+          info,
+          srcDir,
+          dstDir,
+          linkType,
+        });
+      }
 
       for (const segment of segments)
         node = node!.children.get(segment);
