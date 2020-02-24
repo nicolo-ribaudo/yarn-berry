@@ -112,7 +112,7 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
 
         const sourceLocation = npath.toPortablePath(installRecord.locations[0]);
 
-        console.log("Before Manifest.find");
+        console.log("Before Manifest.find", sourceLocation);
         const manifest = await Manifest.find(sourceLocation);
         console.log("Before getSourceBuildScripts");
         const buildScripts = await this.getSourceBuildScripts(sourceLocation, manifest);
