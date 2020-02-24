@@ -93,8 +93,20 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
     const nmTree = buildNodeModulesTree(pnp, {pnpifyFs: false});
     const installState = buildLocatorMap(nmTree);
 
-    console.log("preinstallState", preinstallState);
-    console.log("installState", installState);
+    console.log("preinstallState");
+    if (preinstallState) {
+      for (const [key, value] of preinstallState) {
+        if (value.target.includes("codemod-object-assign-to-object-spread")) {
+          console.log(key, value);
+        }
+      }
+    }
+    console.log("installState");
+    for (const [key, value] of installState) {
+      if (value.target.includes("codemod-object-assign-to-object-spread")) {
+        console.log(key, value);
+      }
+    }
 
     await persistNodeModules(preinstallState, installState, {
       baseFs: defaultFsLayer,
