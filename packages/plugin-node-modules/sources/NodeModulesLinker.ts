@@ -112,8 +112,11 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
 
         const sourceLocation = npath.toPortablePath(installRecord.locations[0]);
 
+        console.log("Before Manifest.find");
         const manifest = await Manifest.find(sourceLocation);
+        console.log("Before getSourceBuildScripts");
         const buildScripts = await this.getSourceBuildScripts(sourceLocation, manifest);
+        console.log("After getSourceBuildScripts");
 
         if (buildScripts.length > 0 && !this.opts.project.configuration.get(`enableScripts`)) {
           this.opts.report.reportWarningOnce(MessageName.DISABLED_BUILD_SCRIPTS, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but all build scripts have been disabled.`);
