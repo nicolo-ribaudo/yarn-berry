@@ -112,11 +112,16 @@ class NodeModulesInstaller extends AbstractPnpInstaller {
 
         const sourceLocation = npath.toPortablePath(installRecord.locations[0]);
 
-        console.log("Before Manifest.find", sourceLocation);
+        // /home/circleci/babel/codemods/babel-plugin-codemod-object-assign-to-object-spread/node_modules/@babel/plugin-codemod-object-assign-to-object-spread
+        if (sourceLocation.includes("codemod-object-assign-to-object-spread")) {
+          require("child_process").execSync("tree", {
+            cwd: "/home/circleci/babel/codemods/babel-plugin-codemod-object-assign-to-object-spread/",
+            stdio: "inherit",
+          });
+        }
+
         const manifest = await Manifest.find(sourceLocation);
-        console.log("Before getSourceBuildScripts");
         const buildScripts = await this.getSourceBuildScripts(sourceLocation, manifest);
-        console.log("After getSourceBuildScripts");
 
         if (buildScripts.length > 0 && !this.opts.project.configuration.get(`enableScripts`)) {
           this.opts.report.reportWarningOnce(MessageName.DISABLED_BUILD_SCRIPTS, `${structUtils.prettyLocator(this.opts.project.configuration, locator)} lists build scripts, but all build scripts have been disabled.`);
