@@ -610,7 +610,7 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
           curLocation = ppath.join(curLocation, segment);
           prevTreeNode = prevTreeNode.children.get(segment);
           if (verbose)
-            console.log({"!!prevTreeNode": !!prevTreeNode, segment, srcDir, dstDir});
+            console.log({"!!prevTreeNode": !!prevTreeNode, segment, curLocation});
           if (!prevTreeNode) {
             addList.push({srcDir, dstDir, linkType, keepNodeModules: node!.children.size > 0 || true});
             break;
