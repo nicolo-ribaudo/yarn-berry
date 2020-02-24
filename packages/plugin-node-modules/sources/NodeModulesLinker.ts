@@ -596,30 +596,17 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
       const dstDir = location;
       const linkType = info.linkType;
 
-      if (verbose) {
-        console.log({
-          locationRoot,
-          segments,
-          prevTreeNode,
-          node,
-          info,
-          srcDir,
-          dstDir,
-          linkType,
-        });
-      }
-
       for (const segment of segments)
         node = node!.children.get(segment);
 
       if (!prevTreeNode) {
-        addList.push({srcDir, dstDir, linkType, keepNodeModules: node!.children.size > 0});
+        addList.push({srcDir, dstDir, linkType, keepNodeModules: node!.children.size > 0 || true});
       } else {
         for (const segment of segments) {
           curLocation = ppath.join(curLocation, segment);
           prevTreeNode = prevTreeNode.children.get(segment);
           if (!prevTreeNode) {
-            addList.push({srcDir, dstDir, linkType, keepNodeModules: node!.children.size > 0});
+            addList.push({srcDir, dstDir, linkType, keepNodeModules: node!.children.size > 0 || true});
             break;
           }
         }
@@ -640,6 +627,9 @@ async function persistNodeModules(preinstallState: NodeModulesLocatorMap | null,
   // the other instances of the same package (this will avoid us having to
   // crawl the zip archives for each package).
   for (const entry of addList) {
+    if (entry.srcDir.includes("codemod-object-assign-to-object-spread"))
+      console.log(entry);
+
     if (entry.linkType === LinkType.SOFT || !persistedLocations.has(entry.srcDir)) {
       persistedLocations.set(entry.srcDir, {dstDir: entry.dstDir, keepNodeModules: entry.keepNodeModules});
       await addModule({...entry});
